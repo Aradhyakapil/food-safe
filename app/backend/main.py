@@ -179,7 +179,272 @@ async def onboard_business(
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 # ... [Keep the rest of your business, inspection, lab report, certification, etc. routes unchanged] ...
+# User routes
+@app.post("/register")
+async def register_user(user: User):
+    return await create_user(user.name, user.email, user.password, user.user_type)
 
+@app.post("/login")
+async def login(user: User):
+    return await login_user(user.email, user.password)
+
+@app.post("/refresh-token")
+async def refresh(refresh_token: str = Header(...)):
+    return await refresh_token(refresh_token)
+
+@app.get("/me")
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+# Business routes
+@app.post("/business")
+async def create_business(business: Business, current_user: User = Depends(get_current_user)):
+    try:
+        new_business = supabase.table("businesses").insert(business.dict()).execute()
+        return {"message": "Business created successfully", "business": new_business.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/business/{business_id}")
+async def get_business(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        business = supabase.table("businesses").select("*").eq("id", business_id).execute()
+        if not business.data:
+            raise HTTPException(status_code=404, detail="Business not found")
+        return business.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/business/license/{license_number}")
+async def get_business_by_license(license_number: str, current_user: User = Depends(get_current_user)):
+    try:
+        business = supabase.table("businesses").select("*").eq("license_number", license_number).execute()
+        if not business.data:
+            raise HTTPException(status_code=404, detail="Business not found")
+        return business.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/business/{business_id}")
+async def update_business(business_id: int, business: Business, current_user: User = Depends(get_current_user)):
+    try:
+        updated_business = supabase.table("businesses").update(business.dict()).eq("id", business_id).execute()
+        if not updated_business.data:
+            raise HTTPException(status_code=404, detail="Business not found")
+        return {"message": "Business updated successfully", "business": updated_business.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Inspection routes
+@app.post("/inspection")
+async def create_inspection(inspection: Inspection, current_user: User = Depends(get_current_user)):
+    try:
+        new_inspection = supabase.table("inspections").insert(inspection.dict()).execute()
+        return {"message": "Inspection created successfully", "inspection": new_inspection.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/inspections/{business_id}")
+async def get_inspections(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        inspections = supabase.table("inspections").select("*").eq("business_id", business_id).execute()
+        return inspections.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Hygiene Rating routes
+@app.post("/hygiene-rating")
+async def create_hygiene_rating(rating: HygieneRating, current_user: User = Depends(get_current_user)):
+    try:
+        new_rating = supabase.table("hygiene_ratings").insert(rating.dict()).execute()
+        return {"message": "Hygiene rating created successfully", "rating": new_rating.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/hygiene-ratings/{business_id}")
+async def get_hygiene_ratings(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        ratings = supabase.table("hygiene_ratings").select("*").eq("business_id", business_id).execute()
+        return ratings.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Lab Report routes
+@app.post("/lab-report")
+async def create_lab_report(report: LabReport, current_user: User = Depends(get_current_user)):
+    try:
+        new_report = supabase.table("lab_reports").insert(report.dict()).execute()
+        return {"message": "Lab report created successfully", "report": new_report.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/lab-reports/{business_id}")
+async def get_lab_reports(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        reports = supabase.table("lab_reports").select("*").eq("business_id", business_id).execute()
+        return reports.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Certification routes
+@app.post("/certification")
+async def create_certification(certification: Certification, current_user: User = Depends(get_current_user)):
+    try:
+        new_certification = supabase.table("certifications").insert(certification.dict()).execute()
+        return {"message": "Certification created successfully", "certification": new_certification.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/certifications/{business_id}")
+async def get_certifications(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        certifications = supabase.table("certifications").select("*").eq("business_id", business_id).execute()
+        return certifications.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Team Member routes
+@app.post("/team-member")
+async def create_team_member(team_member: TeamMember, current_user: User = Depends(get_current_user)):
+    try:
+        new_team_member = supabase.table("team_members").insert(team_member.dict()).execute()
+        return {"message": "Team member created successfully", "team_member": new_team_member.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/team-members/{business_id}")
+async def get_team_members(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        team_members = supabase.table("team_members").select("*").eq("business_id", business_id).execute()
+        return team_members.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Facility Photo routes
+@app.post("/facility-photo")
+async def create_facility_photo(facility_photo: FacilityPhoto, current_user: User = Depends(get_current_user)):
+    try:
+        new_facility_photo = supabase.table("facility_photos").insert(facility_photo.dict()).execute()
+        return {"message": "Facility photo created successfully", "facility_photo": new_facility_photo.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/facility-photos/{business_id}")
+async def get_facility_photos(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        facility_photos = supabase.table("facility_photos").select("*").eq("business_id", business_id).execute()
+        return facility_photos.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Review routes
+@app.post("/review")
+async def create_review(review: Review, current_user: User = Depends(get_current_user)):
+    try:
+        new_review = supabase.table("reviews").insert(review.dict()).execute()
+        return {"message": "Review created successfully", "review": new_review.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/reviews/{business_id}")
+async def get_reviews(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        reviews = supabase.table("reviews").select("*").eq("business_id", business_id).execute()
+        return reviews.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Manufacturing Details routes
+@app.post("/manufacturing-details")
+async def create_manufacturing_details(details: ManufacturingDetails, current_user: User = Depends(get_current_user)):
+    try:
+        new_details = supabase.table("manufacturing_details").insert(details.dict()).execute()
+        return {"message": "Manufacturing details created successfully", "details": new_details.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/manufacturing-details/{business_id}")
+async def get_manufacturing_details(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        details = supabase.table("manufacturing_details").select("*").eq("business_id", business_id).execute()
+        if not details.data:
+            raise HTTPException(status_code=404, detail="Manufacturing details not found")
+        return details.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.put("/manufacturing-details/{business_id}")
+async def update_manufacturing_details(business_id: int, details: ManufacturingDetails, current_user: User = Depends(get_current_user)):
+    try:
+        updated_details = supabase.table("manufacturing_details").update(details.dict()).eq("business_id", business_id).execute()
+        if not updated_details.data:
+            raise HTTPException(status_code=404, detail="Manufacturing details not found")
+        return {"message": "Manufacturing details updated successfully", "details": updated_details.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# Batch Production Details routes
+@app.post("/batch-production")
+async def create_batch_production(batch: BatchProductionDetails, current_user: User = Depends(get_current_user)):
+    try:
+        new_batch = supabase.table("batch_production").insert(batch.dict()).execute()
+        return {"message": "Batch production details created successfully", "batch": new_batch.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/batch-production/{business_id}")
+async def get_batch_production(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        batches = supabase.table("batch_production").select("*").eq("business_id", business_id).execute()
+        return batches.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Raw Material Supplier routes
+@app.post("/raw-material-supplier")
+async def create_raw_material_supplier(supplier: RawMaterialSupplier, current_user: User = Depends(get_current_user)):
+    try:
+        new_supplier = supabase.table("raw_material_suppliers").insert(supplier.dict()).execute()
+        return {"message": "Raw material supplier created successfully", "supplier": new_supplier.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/raw-material-suppliers/{business_id}")
+async def get_raw_material_suppliers(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        suppliers = supabase.table("raw_material_suppliers").select("*").eq("business_id", business_id).execute()
+        return suppliers.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Packaging Compliance routes
+@app.post("/packaging-compliance")
+async def create_packaging_compliance(compliance: PackagingCompliance, current_user: User = Depends(get_current_user)):
+    try:
+        new_compliance = supabase.table("packaging_compliance").insert(compliance.dict()).execute()
+        return {"message": "Packaging compliance created successfully", "compliance": new_compliance.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/packaging-compliance/{business_id}")
+async def get_packaging_compliance(business_id: int, current_user: User = Depends(get_current_user)):
+    try:
+        compliance = supabase.table("packaging_compliance").select("*").eq("business_id", business_id).execute()
+        if not compliance.data:
+            raise HTTPException(status_code=404, detail="Packaging compliance not found")
+        return compliance.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    user = await auth.get_current_user(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    return user
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
