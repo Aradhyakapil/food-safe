@@ -14,14 +14,14 @@ export async function POST(request: Request) {
 
     // Use Supabase's phone auth
     const { data, error } = await supabase.auth.signInWithOtp({
-      phone: phone_number
+      phone: phone_number,
     });
 
     if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      message: "OTP sent successfully"
+      message: "OTP sent successfully",
     });
   } catch (error) {
     console.error("Error sending OTP:", error);
@@ -30,4 +30,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

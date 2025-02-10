@@ -67,8 +67,8 @@ export const registerBusiness = async (
   return await fetchApi("/business/register", "POST", { businessName, phoneNumber, licenseNumber, businessType });
 }
 export const sendOTP = async (phoneNumber: string) => {
-  return await fetchApi("/business/send-otp", "GET", { phone_number: phoneNumber });
-};
+  return await fetchApi("/business/send-otp", "POST", { phone_number: phoneNumber });
+}
 
 export const getBusiness = async (businessId: string): Promise<Business> => {
   return await fetchApi(`/business/${businessId}`, "GET")
