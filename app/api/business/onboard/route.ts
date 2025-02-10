@@ -13,17 +13,17 @@ export async function POST(request: Request) {
     console.log("Received form data:", Object.fromEntries(formData))
 
     // Extract basic information
-    const businessName = formData.get("businessName") as string
+    const business_name = formData.get("business_name") as string
     const address = formData.get("address") as string
     const phone = formData.get("phone") as string
     const email = formData.get("email") as string
-    const fssaiLicense = formData.get("fssaiLicense") as string
-    const ownerName = formData.get("ownerName") as string
-    const tradeLicense = formData.get("tradeLicense") as string
+    const fssai_license = formData.get("fssai_license") as string
+    const owner_name = formData.get("owner_name") as string
+    const trade_license = formData.get("trade_license") as string
     const gstNumber = formData.get("gstNumber") as string
-    const fireSafetyCert = formData.get("fireSafetyCert") as string
-    const liquorLicense = formData.get("liquorLicense") as string
-    const musicLicense = formData.get("musicLicense") as string
+    const fire_safety_cert = formData.get("fire_safety_cert") as string
+    const liquor_license = formData.get("liquor_license") as string
+    const music_license = formData.get("music_license") as string
 
     // Handle file uploads
     const businessLogo = formData.get("business_logo") as File
@@ -38,17 +38,17 @@ export async function POST(request: Request) {
       .from("businesses")
       .insert([
         {
-          name: businessName,
+          name: business_name,
           address,
           phone,
           email,
-          license_number: fssaiLicense,
-          owner_name: ownerName,
-          trade_license: tradeLicense,
+          license_number: fssai_license,
+          owner_name: owner_name,
+          trade_license: trade_license,
           gst_number: gstNumber,
-          fire_safety_cert: fireSafetyCert,
-          liquor_license: liquorLicense,
-          music_license: musicLicense,
+          fire_safety_cert: fire_safety_cert,
+          liquor_license: liquor_license,
+          music_license: music_license,
           logo_url: businessLogoUrl,
           owner_photo_url: ownerPhotoUrl,
         },
@@ -102,11 +102,11 @@ export async function POST(request: Request) {
 }
 
 async function uploadFile(file: File): Promise<string> {
-  const { data, error } = await supabase.storage.from("business-files").upload(`${Date.now()}-${file.name}`, file)
+  const { data, error } = await supabase.storage.from("food-safety-files").upload(`${Date.now()}-${file.name}`, file)
 
   if (error) throw error
 
-  const { data: publicUrl } = supabase.storage.from("business-files").getPublicUrl(data.path)
+  const { data: publicUrl } = supabase.storage.from("food-safety-files").getPublicUrl(data.path)
   return publicUrl.publicUrl
 }
 

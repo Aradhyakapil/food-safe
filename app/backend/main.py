@@ -18,7 +18,9 @@ from app.backend.models import (
 
 # Import the auth router from your auth module
 from app.backend import auth
-
+from app.backend.auth import (
+    create_user, login_user, get_current_user, verify_otp
+)
 # Create the FastAPI app
 app = FastAPI()
 

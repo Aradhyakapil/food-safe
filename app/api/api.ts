@@ -55,6 +55,21 @@ export const register = async (name: string, email: string, password: string, us
   return await fetchApi("/register", "POST", { name, email, password, userType })
 }
 
+export const loginBusiness = async (phoneNumber: string, licenseNumber: string) => {
+  return await fetchApi("/business/login", "POST", { phoneNumber, licenseNumber });
+}
+export const registerBusiness = async (
+  businessName: string,
+  phoneNumber: string,
+  licenseNumber: string,
+  businessType: string
+) => {
+  return await fetchApi("/business/register", "POST", { businessName, phoneNumber, licenseNumber, businessType });
+}
+export const sendOTP = async (phoneNumber: string) => {
+  return await fetchApi("/business/send-otp", "GET", { phone_number: phoneNumber });
+};
+
 export const getBusiness = async (businessId: string): Promise<Business> => {
   return await fetchApi(`/business/${businessId}`, "GET")
 }
