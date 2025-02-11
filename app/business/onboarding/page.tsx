@@ -120,55 +120,95 @@ export default function BusinessOnboardingPage() {
     try {
       const formDataToSend = new FormData();
 
-      // Append all fields
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && key !== "ownerPhoto") {
-          formDataToSend.append(key, value.toString());
+      // Validate required fields first
+      const requiredFields = {
+        businessName: "Business Name",
+        address: "Address",
+        phone: "Phone",
+        email: "Email",
+        licenseNumber: "FSSAI License",
+        businessType: "Business Type",
+        ownerName: "Owner Name",
+        tradeLicense: "Trade License",
+        gstNumber: "GST Number",
+        fireSafetyCert: "Fire Safety Certificate"
+      };
+
+      // Check for missing required fields
+      for (const [key, label] of Object.entries(requiredFields)) {
+        if (!formData[key as keyof typeof formData]) {
+          throw new Error(`${label} is required`);
         }
-      });
+      }
+
+      // Check for required files
+      if (!businessLogo) {
+        throw new Error("Business Logo is required");
+      }
+      if (!formData.ownerPhoto) {
+        throw new Error("Owner Photo is required");
+      }
+
+      // Append all basic fields
+      formDataToSend.append("business_name", formData.businessName);
+      formDataToSend.append("address", formData.address);
+      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("license_number", formData.licenseNumber);
+      formDataToSend.append("business_type", formData.businessType);
+      formDataToSend.append("owner_name", formData.ownerName);
+      formDataToSend.append("trade_license", formData.tradeLicense);
+      formDataToSend.append("gst_number", formData.gstNumber);
+      formDataToSend.append("fire_safety_cert", formData.fireSafetyCert);
+      formDataToSend.append("liquor_license", formData.liquorLicense || "");
+      formDataToSend.append("music_license", formData.musicLicense || "");
 
       // Append files
-      if (businessLogo) formDataToSend.append("business_logo", businessLogo);
-      if (formData.ownerPhoto) formDataToSend.append("owner_photo", formData.ownerPhoto);
+      formDataToSend.append("business_logo", businessLogo);
+      formDataToSend.append("owner_photo", formData.ownerPhoto);
 
-      // Append team members
-      teamMembers.forEach((member, index) => {
-        formDataToSend.append(`team_member_names`, member.name);
-        formDataToSend.append(`team_member_roles`, member.role);
+      // Validate and append team members
+      if (teamMembers.length === 0) {
+        throw new Error("At least one team member is required");
+      }
+
+      const teamNames = teamMembers.map(m => m.name).join(',');
+      const teamRoles = teamMembers.map(m => m.role).join(',');
+      
+      formDataToSend.append("team_member_names", teamNames);
+      formDataToSend.append("team_member_roles", teamRoles);
+      teamMembers.forEach(member => {
         if (member.image) {
-          formDataToSend.append(`team_member_photos`, member.image, `team_member_${index}`);
+          formDataToSend.append("team_member_photos", member.image);
         }
       });
 
-      // Append facility photos
-      facilityPhotos.forEach((photo, index) => {
-        formDataToSend.append(`facility_photo_area_names`, photo.name);
+      // Validate and append facility photos
+      if (facilityPhotos.length === 0) {
+        throw new Error("At least one facility photo is required");
+      }
+
+      const areaNames = facilityPhotos.map(p => p.name).join(',');
+      formDataToSend.append("facility_photo_area_names", areaNames);
+      facilityPhotos.forEach(photo => {
         if (photo.image) {
-          formDataToSend.append(`facility_photos`, photo.image, `facility_photo_${index}`);
+          formDataToSend.append("facility_photos", photo.image);
         }
       });
 
       console.log("Submitting form data:", Object.fromEntries(formDataToSend));
-
       const response = await onboardBusiness(formDataToSend);
+      console.log("Onboarding response:", response);
 
-      if (response.success) {
-        toast({
-          title: "Business Onboarded",
-          description: "Your business has been successfully onboarded.",
-        });
-        router.push("/business/dashboard");
+      if (response.businessId) {
+        router.push('/business/dashboard');
       } else {
-        throw new Error(response.error || "Onboarding failed");
+        throw new Error("Failed to get business ID from response");
       }
+
     } catch (error) {
-      console.error("Onboarding failed:", error);
-      setError(error instanceof Error ? error.message : "An unexpected error occurred during onboarding.");
-      toast({
-        title: "Onboarding Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred during onboarding.",
-        variant: "destructive",
-      });
+      console.error("Submission error:", error);
+      setError(error instanceof Error ? error.message : "Failed to submit form");
     } finally {
       setIsSubmitting(false);
     }

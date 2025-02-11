@@ -13,19 +13,19 @@ export interface Business {
   id: number
   name: string
   address: string
-  license_number: string
+  fssai_license: string
   business_type: string
-  owner_id?: number
-  owner_name?: string
-  owner_photo_url?: string
-  logo_url?: string
-  trade_license?: string
-  gst_number?: string
-  fire_safety_cert?: string
+  owner_id?: string
+  owner_name: string
+  owner_photo_url: string
+  logo_url: string
+  trade_license: string
+  gst_number: string
+  fire_safety_cert: string
   liquor_license?: string | null
   music_license?: string | null
-  phone?: string
-  email?: string
+  phone: string
+  email: string
 }
 
 export interface Certification {

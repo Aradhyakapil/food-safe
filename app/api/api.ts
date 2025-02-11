@@ -39,7 +39,15 @@ export const fetchApi = async (
     const response = await fetch(url, options)
     const data = await response.json()
     if (!response.ok) {
-      throw new Error(data.error || `HTTP error! status: ${response.status}`)
+      const errorData = await response.json()
+      console.error("Backend error:", errorData)
+      if (errorData.detail) {
+        throw new Error(typeof errorData.detail === 'string' 
+          ? errorData.detail 
+          : errorData.detail[0]?.msg || 'An unexpected error occurred'
+        )
+      }
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
     return data
   } catch (error) {
@@ -143,7 +151,6 @@ export const onboardBusiness = async (formData: FormData) => {
       throw new Error("No authentication token found");
     }
 
-    // Create a new FormData object with properly formatted data
     const newFormData = new FormData();
     
     // Map frontend field names to backend expected names
@@ -156,7 +163,10 @@ export const onboardBusiness = async (formData: FormData) => {
       musicLicense: "music_license",
       gstNumber: "gst_number",
       licenseNumber: "license_number",
-      businessType: "business_type"
+      businessType: "business_type",
+      phone: "phone",
+      email: "email",
+      address: "address"
     };
 
     // Add basic business information with correct field names
@@ -181,7 +191,7 @@ export const onboardBusiness = async (formData: FormData) => {
       }
     }
 
-    // Add files with correct field names
+    // Handle files
     const businessLogo = formData.get("business_logo");
     const ownerPhoto = formData.get("owner_photo");
     
@@ -196,38 +206,34 @@ export const onboardBusiness = async (formData: FormData) => {
     newFormData.append("owner_photo", ownerPhoto, ownerPhoto.name);
 
     // Handle team members
-    const teamMemberNames = formData.get("team_member_names")?.toString() || "";
-    const teamMemberRoles = formData.get("team_member_roles")?.toString() || "";
+    const teamMemberNames = formData.get("team_member_names");
+    const teamMemberRoles = formData.get("team_member_roles");
     const teamMemberPhotos = formData.getAll("team_member_photos");
 
-    if (!teamMemberNames || !teamMemberRoles || teamMemberPhotos.length === 0) {
-      throw new Error("Team member information is required");
+    if (teamMemberNames && teamMemberRoles && teamMemberPhotos.length > 0) {
+      newFormData.append("team_member_names", teamMemberNames.toString());
+      newFormData.append("team_member_roles", teamMemberRoles.toString());
+      teamMemberPhotos.forEach((photo) => {
+        if (photo instanceof File) {
+          newFormData.append("team_member_photos", photo, photo.name);
+        }
+      });
     }
-
-    newFormData.append("team_member_names", teamMemberNames);
-    newFormData.append("team_member_roles", teamMemberRoles);
-    teamMemberPhotos.forEach((photo) => {
-      if (photo instanceof File) {
-        newFormData.append("team_member_photos", photo, photo.name);
-      }
-    });
 
     // Handle facility photos
-    const facilityAreaNames = formData.get("facility_photo_area_names")?.toString() || "";
+    const facilityAreaNames = formData.get("facility_photo_area_names");
     const facilityPhotos = formData.getAll("facility_photos");
 
-    if (!facilityAreaNames || facilityPhotos.length === 0) {
-      throw new Error("Facility photos and area names are required");
+    if (facilityAreaNames && facilityPhotos.length > 0) {
+      newFormData.append("facility_photo_area_names", facilityAreaNames.toString());
+      facilityPhotos.forEach((photo) => {
+        if (photo instanceof File) {
+          newFormData.append("facility_photos", photo, photo.name);
+        }
+      });
     }
 
-    newFormData.append("facility_photo_area_names", facilityAreaNames);
-    facilityPhotos.forEach((photo) => {
-      if (photo instanceof File) {
-        newFormData.append("facility_photos", photo, photo.name);
-      }
-    });
-
-    const response = await fetch(`${API_URL}/business/onboard`, {
+    const response = await fetch("/api/business/onboard", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -235,23 +241,25 @@ export const onboardBusiness = async (formData: FormData) => {
       body: newFormData,
     });
 
+    const data = await response.json();
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Backend error:", errorData);
-      if (errorData.detail?.[0]?.msg) {
-        throw new Error(errorData.detail[0].msg);
-      }
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      throw new Error(data.error || "Failed to onboard business");
     }
 
-    const data = await response.json();
-    return { success: true, data };
+    if (!data.businessId) {
+      throw new Error("No business ID returned from server");
+    }
+
+    return {
+      success: true,
+      businessId: data.businessId,
+      message: data.message
+    };
+
   } catch (error) {
     console.error("Onboarding error:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Onboarding failed" 
-    };
+    throw error;
   }
 };
 

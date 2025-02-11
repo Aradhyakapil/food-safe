@@ -88,12 +88,12 @@ async def onboard_business(
     music_license: Optional[str] = Form(None),
     business_logo: UploadFile = File(...),
     owner_photo: UploadFile = File(...),
-    team_member_names: str = Form(...),
-    team_member_roles: str = Form(...),
-    team_member_photos: List[UploadFile] = File(...),
-    facility_photo_area_names: str = Form(...),
-    facility_photos: List[UploadFile] = File(...),
-    current_user: User = Depends(auth.get_current_user)
+    team_member_names: str = Form(""),
+    team_member_roles: str = Form(""),
+    team_member_photos: List[UploadFile] = File([]),
+    facility_photo_area_names: str = Form(""),
+    facility_photos: List[UploadFile] = File([]),
+    current_user: User = Depends(get_current_user)
 ):
     try:
         logger.info(f"Received onboarding request for business: {business_name}")
@@ -170,14 +170,18 @@ async def onboard_business(
                 raise HTTPException(status_code=500, detail=f"Failed to insert facility photo {i}")
 
         logger.info(f"Business onboarding successful for: {business_name}")
-        return {"message": "Business onboarded successfully", "business_id": business_id}
+        return {
+            "success": True,
+            "message": "Business onboarded successfully",
+            "businessId": business_id
+        }
 
     except HTTPException as http_ex:
         logger.error(f"HTTP Exception during onboarding: {http_ex.detail}")
         raise http_ex
     except Exception as e:
         logger.error(f"Unexpected error during onboarding: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ... [Keep the rest of your business, inspection, lab report, certification, etc. routes unchanged] ...
 # User routes
