@@ -17,10 +17,10 @@ export async function POST(request: Request) {
     const address = formData.get("address") as string
     const phone = formData.get("phone") as string
     const email = formData.get("email") as string
-    const fssai_license = formData.get("fssai_license") as string
+    const license_number = formData.get("license_number") as string
     const owner_name = formData.get("owner_name") as string
     const trade_license = formData.get("trade_license") as string
-    const gstNumber = formData.get("gstNumber") as string
+    const gst_number = formData.get("gst_number") as string
     const fire_safety_cert = formData.get("fire_safety_cert") as string
     const liquor_license = formData.get("liquor_license") as string
     const music_license = formData.get("music_license") as string
@@ -42,10 +42,10 @@ export async function POST(request: Request) {
           address,
           phone,
           email,
-          license_number: fssai_license,
+          license_number: license_number,
           owner_name: owner_name,
           trade_license: trade_license,
-          gst_number: gstNumber,
+          gst_number: gst_number,
           fire_safety_cert: fire_safety_cert,
           liquor_license: liquor_license,
           music_license: music_license,

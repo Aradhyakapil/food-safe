@@ -43,6 +43,12 @@ class User(BaseModel):
     phone_number: str
     user_type: str
 
+class BusinessSignup(BaseModel):
+    business_name: str
+    phone_number: str
+    license_number: str
+    otp: str
+
 # ------------------- SIGN UP (Phone Number Only) -------------------
 @router.post("/signup")
 async def create_user(user: UserSignup) -> Dict:
@@ -143,3 +149,33 @@ async def get_current_user(token: str) -> User:
     except Exception as e:
         logger.error(f"Authentication error: {e}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+# ------------------- SEND OTP TO BUSINESS -------------------
+@router.post("/business/send-otp")
+async def send_business_otp(user: UserLogin) -> Dict:
+    """Sends an OTP to the business phone number."""
+    try:
+        logger.info(f"Sending OTP for business: {user.phone_number}")
+
+        response = supabase.auth.sign_in_with_otp({
+            "phone": user.phone_number
+        })
+
+        if response:
+            logger.info(f"OTP sent to {user.phone_number} for business verification.")
+            return {"success": True, "message": "OTP sent to phone for verification."}
+        else:
+            raise HTTPException(status_code=401, detail="Failed to send OTP")
+
+    except Exception as e:
+        logger.error(f"Error sending business OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ------------------- REGISTER BUSINESS -------------------
+@router.post("/business/register")
+async def register_business(business: BusinessSignup) -> Dict:
+    try:
+        # Your existing registration logic
+        return {"success": True, "message": "Business registered successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

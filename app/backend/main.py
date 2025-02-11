@@ -80,7 +80,6 @@ async def onboard_business(
     email: str = Form(...),
     license_number: str = Form(...),
     business_type: str = Form(...),
-    fssai_license: str = Form(...),
     owner_name: str = Form(...),
     trade_license: str = Form(...),
     gst_number: str = Form(...),
@@ -101,12 +100,12 @@ async def onboard_business(
         logger.info(f"Current user: {current_user}")
 
         # Validate input data
-        if not business_name or not address or not phone or not email or not fssai_license:
+        if not business_name or not address or not phone or not email or not license_number:
             raise HTTPException(status_code=400, detail="Missing required fields")
 
         # 1. Upload Business Logo and Owner Photo
-        logo_name = f"business_{fssai_license}_logo.{business_logo.filename.split('.')[-1]}"
-        owner_photo_name = f"business_{fssai_license}_owner.{owner_photo.filename.split('.')[-1]}"
+        logo_name = f"business_{license_number}_logo.{business_logo.filename.split('.')[-1]}"
+        owner_photo_name = f"business_{license_number}_owner.{owner_photo.filename.split('.')[-1]}"
         logo_url = await upload_file(business_logo, logo_name)
         owner_photo_url = await upload_file(owner_photo, owner_photo_name)
 

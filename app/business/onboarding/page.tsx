@@ -38,7 +38,6 @@ export default function BusinessOnboardingPage() {
     email: "",
     licenseNumber: "",
     businessType: localStorage.getItem("businessType") || "",
-    fssaiLicense: "",
     ownerName: "",
     ownerPhoto: null as File | null,
     description: "",
