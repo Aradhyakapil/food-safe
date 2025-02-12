@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { Star, Copy, ImageIcon } from 'lucide-react';
+import RestaurantCertifications from "./components/restaurant-certifications"
 
 interface BusinessDetails {
   id: number;
@@ -81,6 +82,7 @@ export default function BusinessDashboard() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [businessId, setBusinessId] = useState<number>(0)
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -172,6 +174,14 @@ export default function BusinessDashboard() {
 
     fetchAllData();
   }, []);
+
+  useEffect(() => {
+    // Get businessId from localStorage
+    const id = localStorage.getItem('businessId')
+    if (id) {
+      setBusinessId(parseInt(id))
+    }
+  }, [])
 
   if (loading) return (
     <div className="flex justify-center items-center min-h-screen">
@@ -316,90 +326,7 @@ export default function BusinessDashboard() {
       </div>
 
       {/* Restaurant Certifications */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">Restaurant Certifications</h2>
-          <button className="px-3 py-2 bg-black text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 hover:shadow-md transition-all duration-200">
-            <span>+</span> Add New Certification
-          </button>
-        </div>
-        {certifications.length > 0 ? (
-          <div className="space-y-4">
-            {[
-              {
-                type: 'FSSAI License',
-                prefix: '',
-                required: true
-              },
-              {
-                type: 'Trade License',
-                prefix: 'TL',
-                required: true
-              },
-              {
-                type: 'GST Registration',
-                prefix: 'GST',
-                required: true
-              },
-              {
-                type: 'Fire Safety Certificate',
-                prefix: 'FSC',
-                required: true
-              },
-              {
-                type: 'Liquor License',
-                prefix: 'LL',
-                required: false
-              },
-              {
-                type: 'Music License',
-                prefix: 'ML',
-                required: false
-              }
-            ].map((certType) => {
-              const cert = certifications.find(c => c.type === certType.type);
-              return (
-                <div key={certType.type} className="border-b last:border-b-0 pb-4 last:pb-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{certType.type}</h3>
-                      {cert ? (
-                        <>
-                          <p className="text-sm text-gray-500">
-                            Number: {cert.number}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Valid: {new Date(cert.valid_from).toLocaleDateString()} to{' '}
-                            {new Date(cert.valid_to).toLocaleDateString()}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          {certType.required ? 'Required certification' : 'Optional certification'}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {cert && (
-                        <>
-                          <span className="flex items-center text-green-600 text-sm">
-                            ✓ Active
-                          </span>
-                          <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                            View Details
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center">No certifications available</p>
-        )}
-      </div>
+      <RestaurantCertifications businessId={businessId} />
 
       {/* Owner Information */}
       <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
