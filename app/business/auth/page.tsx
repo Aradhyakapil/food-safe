@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ interface SignInForm {
   phoneNumber: string;
   licenseNumber: string;
   otp: string;
+  businessType: "restaurant" | "manufacturer";
 }
 
 interface SignUpForm {
@@ -34,6 +35,7 @@ export default function BusinessAuthPage() {
     phoneNumber: "",
     licenseNumber: "",
     otp: "",
+    businessType: "restaurant",
   });
   const [signUpForm, setSignUpForm] = useState<SignUpForm>({
     businessName: "",
@@ -69,11 +71,15 @@ export default function BusinessAuthPage() {
     setError(null);
 
     try {
-      const response = await loginBusiness(signInForm.phoneNumber, signInForm.otp);
+      const response = await loginBusiness(
+        signInForm.phoneNumber,
+        signInForm.licenseNumber,
+        signInForm.businessType
+      );
 
       if (response.success) {
         localStorage.setItem("token", response.token);
-        localStorage.setItem("businessType", response.business.business_type);
+        localStorage.setItem("businessType", signInForm.businessType);
         router.push("/business/dashboard");
       } else {
         throw new Error(response.error || "Login failed");
@@ -126,66 +132,84 @@ export default function BusinessAuthPage() {
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                <div>
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={signInForm.phoneNumber}
-                    onChange={(e) =>
-                      setSignInForm({ ...signInForm, phoneNumber: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="licenseNumber">FSSAI License Number</Label>
-                  <Input
-                    id="licenseNumber"
-                    name="licenseNumber"
-                    value={signInForm.licenseNumber}
-                    onChange={(e) =>
-                      setSignInForm({ ...signInForm, licenseNumber: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <Button
-                  onClick={() => handleSendOTP("signin")}
-                  disabled={!signInForm.phoneNumber || isLoading}
-                >
-                  {isLoading ? "Sending..." : "Send OTP"}
-                </Button>
-
-                {showOTP && (
-                  <div>
-                    <Label htmlFor="otp">Enter OTP</Label>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sign In</CardTitle>
+                  <CardDescription>Enter your business details to sign in</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-phone">Phone Number</Label>
                     <Input
-                      id="otp"
-                      name="otp"
-                      value={signInForm.otp}
-                      onChange={(e) =>
-                        setSignInForm({ ...signInForm, otp: e.target.value })
-                      }
-                      required
+                      id="signin-phone"
+                      type="tel"
+                      placeholder="+91 9999999999"
+                      value={signInForm.phoneNumber}
+                      onChange={(e) => setSignInForm({ ...signInForm, phoneNumber: e.target.value })}
                     />
-                    <Button onClick={handleSignIn} disabled={isLoading}>
-                      {isLoading ? "Signing In..." : "Sign In"}
-                    </Button>
                   </div>
-                )}
-              </form>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-license">FSSAI License Number</Label>
+                    <Input
+                      id="signin-license"
+                      placeholder="Enter your FSSAI license number"
+                      value={signInForm.licenseNumber}
+                      onChange={(e) => setSignInForm({ ...signInForm, licenseNumber: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Business Type</Label>
+                    <RadioGroup
+                      value={signInForm.businessType}
+                      onValueChange={(value) =>
+                        setSignInForm({ ...signInForm, businessType: value as "restaurant" | "manufacturer" })
+                      }
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="restaurant" id="signin-restaurant" />
+                        <Label htmlFor="signin-restaurant">Restaurant</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="manufacturer" id="signin-manufacturer" />
+                        <Label htmlFor="signin-manufacturer">Manufacturer</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {showOTP && (
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-otp">OTP</Label>
+                      <Input
+                        id="signin-otp"
+                        placeholder="Enter OTP"
+                        value={signInForm.otp}
+                        onChange={(e) => setSignInForm({ ...signInForm, otp: e.target.value })}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="flex flex-col space-y-2">
+                  {!showOTP ? (
+                    <Button 
+                      className="w-full" 
+                      onClick={() => handleSendOTP("signin")}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending..." : "Send OTP"}
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full" 
+                      onClick={handleSignIn}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
             </TabsContent>
 
             <TabsContent value="signup">

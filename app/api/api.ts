@@ -10,51 +10,34 @@ const getAuthToken = () => {
 
 //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 const API_URL = "http://localhost:8000"
-export const fetchApi = async (
-  path: string,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-  body?: any,
-  isFormData = false,
-) => {
-  const url = `${API_URL}${path}`
-  const headers: HeadersInit = {}
-
-  if (!isFormData) {
-    headers["Content-Type"] = "application/json"
-  }
-
-  // Add authentication token to headers
-  const token = localStorage.getItem("token")
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`
-  }
-
-  const options: RequestInit = {
-    method,
-    headers,
-    body: isFormData ? body : JSON.stringify(body),
-  }
-
+export const fetchApi = async (url: string, options: RequestInit = {}) => {
   try {
-    const response = await fetch(url, options)
-    const data = await response.json()
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error("Backend error:", errorData)
-      if (errorData.detail) {
-        throw new Error(typeof errorData.detail === 'string' 
-          ? errorData.detail 
-          : errorData.detail[0]?.msg || 'An unexpected error occurred'
-        )
-      }
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return data
+
+    // Clone the response before reading
+    const clonedResponse = response.clone();
+    
+    try {
+      return await clonedResponse.json();
+    } catch (error) {
+      // If JSON parsing fails, try reading the original response as text
+      const textResponse = await response.text();
+      throw new Error(textResponse || 'Failed to parse response');
+    }
   } catch (error) {
-    console.error("Error fetching data:", error)
-    throw error
+    throw error;
   }
-}
+};
 
 export const login = async (email: string, password: string) => {
   return await fetchApi("/login", "POST", { email, password })
@@ -64,9 +47,39 @@ export const register = async (name: string, email: string, password: string, us
   return await fetchApi("/register", "POST", { name, email, password, userType })
 }
 
-export const loginBusiness = async (phoneNumber: string, licenseNumber: string) => {
-  return await fetchApi("/business/login", "POST", { phoneNumber, licenseNumber });
-}
+export const loginBusiness = async (phoneNumber: string, licenseNumber: string, businessType: string) => {
+  try {
+    if (!phoneNumber || !licenseNumber || !businessType) {
+      throw new Error('Phone number, license number, and business type are required');
+    }
+
+    const response = await fetch('/api/business/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ phoneNumber, licenseNumber, businessType }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed');
+    }
+    
+    if (data.businessId) {
+      localStorage.setItem('businessId', data.businessId.toString());
+      localStorage.setItem('businessName', data.name);
+      localStorage.setItem('businessType', businessType);
+      localStorage.setItem('token', data.token);
+    }
+    
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const registerBusiness = async (
   businessName: string,
   phoneNumber: string,
@@ -80,6 +93,7 @@ export const registerBusiness = async (
     otp: otp
   });
 }
+
 export const sendOTP = async (phoneNumber: string) => {
   const { data, error } = await supabase.auth.signInWithOtp({
     phone: phoneNumber
