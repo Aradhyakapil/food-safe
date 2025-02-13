@@ -80,22 +80,44 @@ export default function ConsumerAuthPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    
     try {
+      console.log("Attempting login with:", {
+        name: signInForm.name.trim(),
+        password: signInForm.password
+      })
+
       const response = await fetch("/api/consumer/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(signInForm),
+        headers: { 
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: signInForm.name.trim(),
+          password: signInForm.password
+        }),
       })
+      
       const data = await response.json()
+      console.log("Login response:", data)
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed")
+      }
+      
       if (data.success) {
         localStorage.setItem("token", data.token)
-        router.push("/consumer/verify")
+        localStorage.setItem("userId", data.user.id)
+        localStorage.setItem("userName", data.user.name)
+        
+        // Redirect to verify business page
+        router.push('/consumer/verify-business')
       } else {
         throw new Error(data.error || "Login failed")
       }
     } catch (error) {
-      console.error("Login failed:", error)
-      setError("Login failed. Please check your credentials and try again.")
+      console.error("Login error:", error)
+      setError(error instanceof Error ? error.message : "Login failed")
     } finally {
       setIsLoading(false)
     }

@@ -5,21 +5,66 @@ export async function POST(request: Request) {
   try {
     const { name, password } = await request.json()
 
-    const { data, error } = await supabase.from("users").select().eq("name", name).eq("password", password).single()
+    console.log("Login attempt for user:", name)
 
-    if (error) throw error
+    // Query the users table with specific columns
+    const { data: user, error } = await supabase
+      .from("users")
+      .select(`
+        id,
+        name,
+        password,
+        phone_number,
+        created_at,
+        updated_at
+      `)
+      .eq("name", name)
+      .maybeSingle()
 
-    if (!data) {
-      return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 })
+    console.log("Database query result:", { user, error })
+
+    if (error) {
+      console.error("Database error:", error)
+      return NextResponse.json({ 
+        success: false, 
+        error: "Database error: " + error.message 
+      }, { status: 500 })
     }
 
-    // In a real application, you would generate a proper JWT token here
-    const token = "dummy_token"
+    if (!user) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "User not found" 
+      }, { status: 401 })
+    }
 
-    return NextResponse.json({ success: true, token, user: data })
+    // Compare passwords
+    if (user.password !== password) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Invalid password" 
+      }, { status: 401 })
+    }
+
+    // Generate token
+    const token = Buffer.from(`${user.id}-${Date.now()}`).toString('base64')
+
+    return NextResponse.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        phone_number: user.phone_number
+      }
+    })
+
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ success: false, error: "Login failed" }, { status: 500 })
+    console.error("Server error:", error)
+    return NextResponse.json({ 
+      success: false, 
+      error: "Server error: " + (error instanceof Error ? error.message : String(error))
+    }, { status: 500 })
   }
 }
 
