@@ -20,15 +20,20 @@ export default function VerifyBusinessPage() {
     try {
       const { data, error } = await supabase
         .from('businesses')
-        .select('*')
-        .eq('license_number', licenseNumber)
+        .select('id, license_number')
+        .eq('license_number', licenseNumber.trim())
         .single()
 
       if (error) throw error
+      
       if (data) {
+        // Redirect to the consumer business view with the business ID
         router.push(`/consumer/business/${data.id}`)
+      } else {
+        setError('No business found with this license number')
       }
     } catch (error) {
+      console.error('Search error:', error)
       setError('No business found with this license number')
     } finally {
       setIsLoading(false)

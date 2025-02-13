@@ -109,7 +109,7 @@ export const getBusiness = async (businessId: string): Promise<Business> => {
 }
 
 export const getHygieneRatings = async (businessId: number): Promise<any[]> => {
-  return await fetchApi(`/hygiene-ratings/${businessId}`, "GET")
+  return await fetchApi(`/api/business/${businessId}/hygiene-ratings`, "GET")
 }
 
 export const getCertifications = async (businessId: number) => {
@@ -158,8 +158,8 @@ export const getLabReports = async (businessId: number) => {
   }
 };
 
-export const getTeamMembers = async (businessId: number): Promise<TeamMember[]> => {
-  return await fetchApi(`/team-members/${businessId}`, "GET")
+export const getTeamMembers = async (businessId: number): Promise<any[]> => {
+  return await fetchApi(`/api/business/${businessId}/team-members`, "GET")
 }
 
 export const getFacilityPhotos = async (businessId: number) => {
@@ -183,8 +183,8 @@ export const getFacilityPhotos = async (businessId: number) => {
   }
 };
 
-export const getReviews = async (businessId: number): Promise<Review[]> => {
-  return await fetchApi(`/reviews/${businessId}`, "GET")
+export const getReviews = async (businessId: number): Promise<any[]> => {
+  return await fetchApi(`/api/business/${businessId}/reviews`, "GET")
 }
 
 export const updateBusiness = async (businessId: number, updatedData: Partial<Business>): Promise<Business> => {

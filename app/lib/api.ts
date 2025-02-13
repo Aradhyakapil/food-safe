@@ -1,31 +1,12 @@
 //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 const API_URL = "http://localhost:8000"
-export const fetchApi = async (path: string, method: "GET" | "POST" | "PUT" | "DELETE" = "GET", body?: any) => {
-  const url = `${API_URL}${path}`
-  const headers = {
-    "Content-Type": "application/json",
-  }
 
-  const options: RequestInit = {
-    method,
-    headers,
+export async function fetchApi(url: string) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
   }
-
-  if (body) {
-    options.body = JSON.stringify(body)
-  }
-
-  try {
-    const response = await fetch(url, options)
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
-    }
-    return await response.json()
-  } catch (error) {
-    console.error("Error fetching data:", error)
-    throw error // Re-throw the error to be handled by the caller
-  }
+  return response.json()
 }
 
 export const login = async (phoneNumber: string, licenseNumber: string) => {
@@ -39,5 +20,65 @@ export const register = async (
   businessType: string,
 ) => {
   return await fetchApi("/register", "POST", { businessName, phoneNumber, licenseNumber, businessType })
+}
+
+export async function getHygieneRatings(businessId: number) {
+  try {
+    const response = await fetchApi(`/api/business/${businessId}/hygiene-ratings`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hygiene ratings');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching hygiene ratings:', error);
+    throw error;
+  }
+}
+
+export async function getCertifications(businessId: number) {
+  return fetchApi(`/api/business/${businessId}/certifications`)
+}
+
+export async function getLabReports(businessId: number) {
+  return fetchApi(`/api/business/${businessId}/lab-reports`)
+}
+
+export async function getTeamMembers(businessId: number) {
+  try {
+    const response = await fetchApi(`/api/business/${businessId}/team-members`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch team members');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching team members:', error);
+    throw error;
+  }
+}
+
+export async function getFacilityPhotos(businessId: number) {
+  try {
+    const response = await fetchApi(`/api/business/${businessId}/facility-photos`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch facility photos');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching facility photos:', error);
+    throw error;
+  }
+}
+
+export async function getReviews(businessId: number) {
+  try {
+    const response = await fetchApi(`/api/business/${businessId}/reviews`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch reviews');
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    throw error;
+  }
 }
 
