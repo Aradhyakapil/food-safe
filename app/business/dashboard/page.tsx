@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import { Star, Copy, ImageIcon } from 'lucide-react';
 import RestaurantCertifications from "./components/restaurant-certifications"
+import RestaurantLabReports from "./components/restaurant-lab-reports"
+import RestaurantFacilityPhotos from "./components/restaurant-facility-photos"
+import RestaurantTeamMembers from "./components/restaurant-team-members"
 
 interface BusinessDetails {
   id: number;
@@ -25,11 +28,16 @@ interface BusinessDetails {
 }
 
 interface LabReport {
-  id: number;
-  type: string;
-  date: string;
-  status: string;
-  report_url: string | null;
+  id?: number;
+  business_id: number;
+  report_date: string;
+  test_type: string;
+  result: string;
+  notes?: string;
+  status: 'Pass' | 'Fail' | 'Pending';
+  report_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface TeamMember {
@@ -106,7 +114,7 @@ export default function BusinessDashboard() {
           .from('lab_reports')
           .select('*')
           .eq('business_id', businessId)
-          .order('date', { ascending: false });
+          .order('report_date', { ascending: false });
         setLabReports(reports || []);
 
         // Fetch team members
@@ -361,115 +369,13 @@ export default function BusinessDashboard() {
       </div>
 
       {/* Lab Reports */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">Lab Reports</h2>
-          <button className="px-3 py-2 bg-black text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 hover:shadow-md transition-all duration-200">
-            <span>+</span> Add New Report
-          </button>
-        </div>
-        <div className="space-y-4">
-          {labReports.map((report) => (
-            <div key={report.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
-              <div>
-                <h3 className="font-medium">{report.type}</h3>
-                <p className="text-sm text-gray-500">
-                  Date: {new Date(report.date).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="flex items-center text-green-600 text-sm">
-                  ✓ {report.status}
-                </span>
-                <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))}
-          {labReports.length === 0 && (
-            <p className="text-gray-500 text-center">No lab reports available</p>
-          )}
-        </div>
-      </div>
+      <RestaurantLabReports businessId={businessId} />
 
       {/* Our Team */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">Our Team</h2>
-          <button className="px-3 py-2 bg-black text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 hover:shadow-md transition-all duration-200">
-            <span>+</span> Add Team Member
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {teamMembers.map((member) => (
-            <div key={member.id} className="flex flex-col items-center text-center">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gray-100 rounded-full mb-3">
-                  {member.photo_url ? (
-                    <img 
-                      src={member.photo_url}
-                      alt={member.name}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 rounded-full" />
-                  )}
-                </div>
-                <button className="absolute bottom-2 right-0 w-6 h-6 bg-white rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50">
-                  <span>+</span>
-                </button>
-              </div>
-              <h3 className="font-medium">{member.name}</h3>
-              <p className="text-sm text-gray-600">{member.role}</p>
-            </div>
-          ))}
-          {teamMembers.length === 0 && (
-            <p className="text-gray-500 text-center col-span-3">No team members added</p>
-          )}
-        </div>
-      </div>
+      <RestaurantTeamMembers businessId={businessId} />
 
       {/* Facility Photos */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">Facility Photos</h2>
-          <button className="px-3 py-2 bg-black text-white rounded-lg text-sm flex items-center gap-2 hover:bg-gray-800 hover:shadow-md transition-all duration-200">
-            <span>+</span> Add Photo
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {facilityPhotos.map((facility) => (
-            <div key={facility.id} className="flex flex-col">
-              <div className="relative group">
-                <div className="aspect-[4/3] bg-gray-100 rounded-lg mb-2 flex items-center justify-center">
-                  {facility.photo_url ? (
-                    <img 
-                      src={facility.photo_url}
-                      alt={facility.area_name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="text-gray-400">
-                      <ImageIcon className="w-8 h-8" />
-                    </div>
-                  )}
-                  <button 
-                    className="absolute bottom-2 right-2 px-3 py-1 bg-white text-sm rounded 
-                             shadow hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    Edit Area Name
-                  </button>
-                </div>
-                <p className="text-center font-medium">{facility.area_name}</p>
-              </div>
-            </div>
-          ))}
-          {facilityPhotos.length === 0 && (
-            <p className="text-gray-500 text-center col-span-3">No facility photos added</p>
-          )}
-        </div>
-      </div>
+      <RestaurantFacilityPhotos businessId={businessId} />
     </div>
   );
 }

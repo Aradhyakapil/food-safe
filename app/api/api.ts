@@ -112,25 +112,76 @@ export const getHygieneRatings = async (businessId: number): Promise<any[]> => {
   return await fetchApi(`/hygiene-ratings/${businessId}`, "GET")
 }
 
-export const getCertifications = async (businessId: number): Promise<Certification[]> => {
-  return await fetchApi(`/certifications/${businessId}`, "GET")
-}
+export const getCertifications = async (businessId: number) => {
+  try {
+    const response = await fetch(`/api/business/certifications/${businessId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch certifications');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch certifications:', error);
+    throw error;
+  }
+};
 
 export const createCertification = async (certificationData: Partial<Certification>): Promise<Certification> => {
   return await fetchApi(`/certification`, "POST", certificationData)
 }
 
-export const getLabReports = async (businessId: number): Promise<LabReport[]> => {
-  return await fetchApi(`/lab-reports/${businessId}`, "GET")
-}
+export const getLabReports = async (businessId: number) => {
+  try {
+    const response = await fetch(`/api/business/lab-reports/${businessId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch lab reports');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch lab reports:', error);
+    throw error;
+  }
+};
 
 export const getTeamMembers = async (businessId: number): Promise<TeamMember[]> => {
   return await fetchApi(`/team-members/${businessId}`, "GET")
 }
 
-export const getFacilityPhotos = async (businessId: number): Promise<FacilityPhoto[]> => {
-  return await fetchApi(`/facility-photos/${businessId}`, "GET")
-}
+export const getFacilityPhotos = async (businessId: number) => {
+  try {
+    const response = await fetch(`/api/business/facility-photos/${businessId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch facility photos');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch facility photos:', error);
+    throw error;
+  }
+};
 
 export const getReviews = async (businessId: number): Promise<Review[]> => {
   return await fetchApi(`/reviews/${businessId}`, "GET")
