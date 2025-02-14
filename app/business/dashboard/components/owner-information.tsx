@@ -7,54 +7,102 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { getBusiness, updateBusiness } from "@/app/api/api"
+import { supabase } from "@/app/lib/supabase"
 
 interface OwnerInformation {
   owner_name: string
-  owner_photo: string
-  business_type: string
+  owner_photo_url: string
 }
 
 export function OwnerInformation({ businessId }: { businessId: number }) {
   const [ownerInfo, setOwnerInfo] = useState<OwnerInformation>({
     owner_name: "",
-    owner_photo: "/placeholder.svg",
-    business_type: "",
+    owner_photo_url: "/placeholder.svg",
   })
-  const [isEditing, setIsEditing] = useState(false)
+  const [isNameDialogOpen, setIsNameDialogOpen] = useState(false)
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchOwnerInfo = async () => {
-      try {
-        const response = await getBusiness(businessId)
-        setOwnerInfo({
-          owner_name: response.data.owner_name,
-          owner_photo: response.data.owner_photo || "/placeholder.svg",
-          business_type: response.data.business_type,
-        })
-      } catch (error) {
-        console.error("Failed to fetch owner information:", error)
-      }
+  const fetchOwnerInfo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('owner_name, owner_photo_url')
+        .eq('id', businessId)
+        .single()
+
+      if (error) throw error
+
+      setOwnerInfo({
+        owner_name: data.owner_name || '',
+        owner_photo_url: data.owner_photo_url || '/placeholder.svg',
+      })
+    } catch (error) {
+      console.error("Failed to fetch owner information:", error)
     }
+  }
+
+  useEffect(() => {
     fetchOwnerInfo()
   }, [businessId])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setOwnerInfo((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNameUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await updateBusiness(businessId, ownerInfo)
-      setIsEditing(false)
-      alert("Owner information updated successfully!")
+      const { error } = await supabase
+        .from('businesses')
+        .update({ owner_name: ownerInfo.owner_name })
+        .eq('id', businessId)
+
+      if (error) throw error
+
+      setIsNameDialogOpen(false)
     } catch (error) {
-      console.error("Failed to update owner information:", error)
-      alert("Failed to update owner information. Please try again.")
+      console.error("Failed to update owner name:", error)
+      alert("Failed to update owner name")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePhotoUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedFile) return
+
+    setIsLoading(true)
+    try {
+      const fileExt = selectedFile.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `owner-photos/${businessId}/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('food-safety-files')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('food-safety-files')
+        .getPublicUrl(filePath)
+
+      const { error: updateError } = await supabase
+        .from('businesses')
+        .update({ owner_photo_url: publicUrl })
+        .eq('id', businessId)
+
+      if (updateError) throw updateError
+
+      await fetchOwnerInfo()
+      setIsPhotoDialogOpen(false)
+      setSelectedFile(null)
+    } catch (error) {
+      console.error("Failed to upload photo:", error)
+      alert("Failed to upload photo")
     } finally {
       setIsLoading(false)
     }
@@ -64,50 +112,72 @@ export function OwnerInformation({ businessId }: { businessId: number }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Owner Information</CardTitle>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              Edit Owner Info
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Owner Information</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="owner_name">Owner Name</Label>
-                <Input
-                  id="owner_name"
-                  name="owner_name"
-                  value={ownerInfo.owner_name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="owner_photo">Owner Photo URL</Label>
-                <Input id="owner_photo" name="owner_photo" value={ownerInfo.owner_photo} onChange={handleInputChange} />
-              </div>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <div className="space-x-2">
+          <Dialog open={isNameDialogOpen} onOpenChange={setIsNameDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">Edit Owner Info</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Owner Name</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleNameUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="owner_name">Name</Label>
+                  <Input
+                    id="owner_name"
+                    value={ownerInfo.owner_name}
+                    onChange={(e) => setOwnerInfo(prev => ({ ...prev, owner_name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update Name"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">Update Photo</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Profile Photo</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handlePhotoUpload} className="space-y-4">
+                <div>
+                  <Label htmlFor="photo">Photo</Label>
+                  <Input
+                    id="photo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files && setSelectedFile(e.target.files[0])}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Uploading..." : "Upload Photo"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
-          <Image
-            src={ownerInfo.owner_photo || "/placeholder.svg"}
-            alt="Owner photo"
-            width={48}
-            height={48}
-            className="rounded-full"
-          />
+          <div className="relative w-12 h-12">
+            <Image
+              src={ownerInfo.owner_photo_url}
+              alt="Owner photo"
+              fill
+              className="rounded-full object-cover"
+            />
+          </div>
           <div>
-            <h3 className="font-semibold">{ownerInfo.owner_name}</h3>
-            <p className="text-sm text-muted-foreground">{ownerInfo.business_type} Owner</p>
+            <h3 className="font-medium">{ownerInfo.owner_name}</h3>
+            <p className="text-sm text-muted-foreground">Owner</p>
           </div>
         </div>
       </CardContent>

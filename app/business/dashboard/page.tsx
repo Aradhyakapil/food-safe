@@ -8,6 +8,7 @@ import RestaurantCertifications from "./components/restaurant-certifications"
 import RestaurantLabReports from "./components/restaurant-lab-reports"
 import RestaurantFacilityPhotos from "@/app/consumer/business/components/restaurant-facility-photos"
 import RestaurantTeamMembers from "./components/restaurant-team-members"
+import { OwnerInformation } from "./components/owner-information"
 
 interface BusinessDetails {
   id: number;
@@ -337,36 +338,7 @@ export default function BusinessDashboard() {
       <RestaurantCertifications businessId={businessId} />
 
       {/* Owner Information */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Owner Information</h2>
-          <div className="space-x-2">
-            <button className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
-              Edit Owner Info
-            </button>
-            <button className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
-              Update Photo
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden">
-            {businessDetails.owner_photo_url ? (
-              <img 
-                src={businessDetails.owner_photo_url}
-                alt={businessDetails.owner_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 rounded-full" />
-            )}
-          </div>
-          <div>
-            <h3 className="font-medium">{businessDetails.owner_name}</h3>
-            <p className="text-sm text-gray-600">Owner</p>
-          </div>
-        </div>
-      </div>
+      <OwnerInformation businessId={businessId} />
 
       {/* Lab Reports */}
       <RestaurantLabReports businessId={businessId} />
