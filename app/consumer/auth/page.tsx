@@ -89,7 +89,7 @@ export default function ConsumerAuthPage() {
       const data = await response.json()
       if (data.success) {
         localStorage.setItem("token", data.token)
-        router.push("/consumer/verify")
+        router.push("/consumer/verify-business")
       } else {
         throw new Error(data.error || "Login failed")
       }
