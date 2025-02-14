@@ -127,7 +127,7 @@ export default function RestaurantTeamMembers({ businessId }: { businessId: numb
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Our Team</CardTitle>
+        <CardTitle>Team Members</CardTitle>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -191,10 +191,10 @@ export default function RestaurantTeamMembers({ businessId }: { businessId: numb
         </Dialog>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {members.map((member) => (
             <div key={member.id} className="text-center">
-              <div className="aspect-square rounded-full overflow-hidden mb-2">
+              <div className="aspect-square w-20 h-20 mx-auto rounded-full overflow-hidden mb-2">
                 <img
                   src={member.photo_url}
                   alt={member.name}
@@ -202,7 +202,7 @@ export default function RestaurantTeamMembers({ businessId }: { businessId: numb
                 />
               </div>
               <h3 className="font-medium">{member.name}</h3>
-              <p className="text-sm text-muted-foreground">{member.role}</p>
+              <p className="text-muted-foreground">{member.role}</p>
             </div>
           ))}
         </div>

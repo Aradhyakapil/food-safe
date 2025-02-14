@@ -129,27 +129,24 @@ export default function RestaurantFacilityPhotos({ businessId }: { businessId: n
         </Dialog>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {photos.map((photo) => {
-            console.log('Rendering photo:', photo)
-            return (
-              <div key={photo.id} className="space-y-2">
-                <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                  <Image
-                    src={photo.photo_url || "/placeholder.svg"}
-                    alt={photo.location || 'Facility photo'}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-2">
-                  <p className="text-sm font-medium text-center">
-                    {photo.location || 'No location provided'}
-                  </p>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {photos.map((photo) => (
+            <div key={photo.id} className="space-y-2">
+              <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+                <Image
+                  src={photo.photo_url || "/placeholder.svg"}
+                  alt={photo.location || 'Facility photo'}
+                  fill
+                  className="object-cover"
+                />
               </div>
-            )
-          })}
+              <div className="p-2 bg-muted/50 rounded-md">
+                <p className="text-sm font-medium text-center">
+                  {photo.location || 'No location provided'}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
