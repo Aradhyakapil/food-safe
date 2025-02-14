@@ -9,6 +9,7 @@ import RestaurantLabReports from "./components/restaurant-lab-reports"
 import RestaurantFacilityPhotos from "@/app/consumer/business/components/restaurant-facility-photos"
 import RestaurantTeamMembers from "./components/restaurant-team-members"
 import { OwnerInformation } from "./components/owner-information"
+import { BusinessHeader } from "./components/business-header"
 
 interface BusinessDetails {
   id: number;
@@ -214,47 +215,7 @@ export default function BusinessDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-      {/* Business Header */}
-      <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden">
-            {businessDetails.logo_url ? (
-              <img 
-                src={businessDetails.logo_url}
-                alt={businessDetails.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200" />
-            )}
-          </div>
-          <div className="flex-grow">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold">{businessDetails.name}</h1>
-              <button className="p-1">
-                <Copy className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
-            <div className="text-sm space-y-1 mt-2">
-              <p>License: {businessDetails.license_number}</p>
-              <p>Address: {businessDetails.address}</p>
-              <p>FSSAI Care: 1800-112-100</p>
-              <p>Email: {businessDetails.email}</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-4">
-          <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
-            Apply for License Renewal
-          </button>
-          <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
-            Apply for New License
-          </button>
-          <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
-            Apply for Lab Reports
-          </button>
-        </div>
-      </div>
+      <BusinessHeader businessId={businessId} />
 
       {/* Hygiene Rating */}
       <div className="bg-gradient-to-b from-white to-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.08)] transition-shadow duration-200 rounded-lg p-6">
