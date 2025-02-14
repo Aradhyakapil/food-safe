@@ -9,4 +9,12 @@ export interface LabReport {
   report_url?: string
   created_at?: string
   updated_at?: string
+}
+
+export interface FacilityPhoto {
+  id: number
+  business_id: number
+  photo_url: string
+  area_name: string
+  created_at: string
 } 

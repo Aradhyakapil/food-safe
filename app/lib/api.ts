@@ -41,3 +41,109 @@ export const register = async (
   return await fetchApi("/register", "POST", { businessName, phoneNumber, licenseNumber, businessType })
 }
 
+export async function getBusiness(businessId: number) {
+  try {
+    const response = await fetch(`/api/business/${businessId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch business details');
+    }
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch business details');
+    }
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch business details:', error);
+    throw error;
+  }
+}
+
+export async function getHygieneRatings(businessId: number) {
+  try {
+    const response = await fetch(`/api/business/${businessId}/hygiene-ratings`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch hygiene ratings');
+    }
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch hygiene ratings');
+    }
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch hygiene ratings:', error);
+    throw error;
+  }
+}
+
+export const getTeamMembers = async (businessId: number) => {
+  try {
+    const response = await fetch(`/api/business/${businessId}/team-members`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch team members');
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch team members');
+    }
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch team members:', error);
+    throw error;
+  }
+};
+
+export async function getFacilityPhotos(businessId: number) {
+  if (!businessId) {
+    throw new Error('Business ID is required')
+  }
+
+  const response = await fetch(`/api/business/facility-photos/${businessId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch facility photos')
+  }
+
+  const data = await response.json()
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch facility photos')
+  }
+
+  return data
+}
+
+export const getReviews = async (businessId: number) => {
+  try {
+    const response = await fetch(`/api/business/${businessId}/reviews`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch reviews');
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch reviews');
+    }
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch reviews:', error);
+    throw error;
+  }
+};
+

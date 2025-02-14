@@ -6,7 +6,7 @@ import { supabase } from '@/app/lib/supabase';
 import { Star, Copy, ImageIcon } from 'lucide-react';
 import RestaurantCertifications from "./components/restaurant-certifications"
 import RestaurantLabReports from "./components/restaurant-lab-reports"
-import RestaurantFacilityPhotos from "./components/restaurant-facility-photos"
+import RestaurantFacilityPhotos from "@/app/consumer/business/components/restaurant-facility-photos"
 import RestaurantTeamMembers from "./components/restaurant-team-members"
 
 interface BusinessDetails {

@@ -11,15 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { onboardBusiness } from "@/app/api/api";
 import { toast } from "@/components/ui/use-toast";
+import { FacilityPhoto } from '@/app/types'
 
 interface TeamMember {
   name: string;
   role: string;
-  image?: File;
-}
-
-interface FacilityPhoto {
-  name: string;
   image?: File;
 }
 
@@ -29,7 +25,7 @@ export default function BusinessOnboardingPage() {
   const [error, setError] = useState<string | null>(null);
   const [businessLogo, setBusinessLogo] = useState<File | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [facilityPhotos, setFacilityPhotos] = useState<FacilityPhoto[]>([]);
+  const [facilityPhotos, setFacilityPhotos] = useState<Partial<FacilityPhoto>[]>([]);
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -107,6 +103,14 @@ export default function BusinessOnboardingPage() {
     setFacilityPhotos((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleFacilityPhotoUpload = (index: number, file: File) => {
+    setFacilityPhotos((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], image: file };
       return updated;
     });
   };
@@ -491,7 +495,7 @@ export default function BusinessOnboardingPage() {
                         accept="image/jpeg, image/png"
                         onChange={(e) => {
                           if (e.target.files?.[0]) {
-                            handleFacilityPhotoChange(index, "image", e.target.files[0]);
+                            handleFacilityPhotoUpload(index, e.target.files[0]);
                           }
                         }}
                       />

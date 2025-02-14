@@ -15,6 +15,7 @@ import {
   getFacilityPhotos,
   getReviews,
 } from "@/app/api/api"
+import RestaurantFacilityPhotos from '@/app/consumer/business/components/restaurant-facility-photos'
 
 interface BusinessDetails {
   id: number
@@ -61,6 +62,7 @@ interface Review {
 
 export default function BusinessProfilePage() {
   const { id } = useParams()
+  const businessId = parseInt(id as string)
   const [businessDetails, setBusinessDetails] = useState<BusinessDetails | null>(null)
   const [hygieneRatings, setHygieneRatings] = useState<HygieneRating[]>([])
   const [certifications, setCertifications] = useState<Certification[]>([])
@@ -234,22 +236,7 @@ export default function BusinessProfilePage() {
               </TabsContent>
               <TabsContent value="facility">
                 <h3 className="text-xl font-semibold mb-4">Facility Photos</h3>
-                {facilityPhotos.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {facilityPhotos.map((photo, index) => (
-                      <div key={index} className="bg-white p-4 rounded-lg shadow">
-                        <img
-                          src={photo.photo_url || "/placeholder.svg"}
-                          alt={photo.area_name}
-                          className="w-full h-48 object-cover rounded-lg mb-2"
-                        />
-                        <p className="text-center font-medium">{photo.area_name}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No facility photos found.</p>
-                )}
+                <RestaurantFacilityPhotos businessId={businessId} />
               </TabsContent>
               <TabsContent value="reviews">
                 <h3 className="text-xl font-semibold mb-4">Customer Reviews</h3>
