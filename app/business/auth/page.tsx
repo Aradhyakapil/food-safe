@@ -105,12 +105,15 @@ export default function BusinessAuthPage() {
 
       if (response.success) {
         localStorage.setItem("token", response.token);
+        localStorage.setItem("businessId", response.businessId.toString());
         localStorage.setItem("businessType", signUpForm.businessType);
-        if (signUpForm.businessType === "restaurant") {
-          router.push("/business/onboarding");
-        } else {
-          router.push("/business/manufacturing/onboarding");
-        }
+
+        // Redirect based on business type
+        const onboardingPath = signUpForm.businessType === "restaurant" 
+          ? `/business/onboarding` 
+          : `/business/manufacturing/onboarding`;
+        
+        router.push(onboardingPath);
       } else {
         throw new Error(response.error || "Registration failed");
       }

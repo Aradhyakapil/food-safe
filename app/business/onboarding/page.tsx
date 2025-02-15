@@ -204,15 +204,16 @@ export default function BusinessOnboardingPage() {
       const response = await onboardBusiness(formDataToSend);
       console.log("Onboarding response:", response);
 
-      if (response.success && response.businessId) {
-        // Redirect to dashboard after successful submission
-        router.push('/business/dashboard');
-        // Optional: You can store the businessId in localStorage if needed
-        localStorage.setItem('businessId', response.businessId);
+      if (response.success) {
+        // Redirect based on business type
+        const dashboardPath = response.businessType === 'restaurant' 
+          ? '/business/dashboard'
+          : '/business/manufacturing/dashboard';
+          
+        router.push(dashboardPath);
       } else {
-        throw new Error(response.error || "Failed to get business ID from response");
+        throw new Error(response.error || "Failed to complete business setup");
       }
-
     } catch (error) {
       console.error("Submission error:", error);
       setError(error instanceof Error ? error.message : "Failed to submit form");

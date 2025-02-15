@@ -82,17 +82,32 @@ export const loginBusiness = async (phoneNumber: string, licenseNumber: string, 
 
 export const registerBusiness = async (
   businessName: string,
-  phoneNumber: string,
   licenseNumber: string,
+  phoneNumber: string,
   otp: string
 ) => {
-  return await fetchApi("/auth/business/register", "POST", {
-    business_name: businessName,
-    phone_number: phoneNumber,
-    license_number: licenseNumber,
-    otp: otp
-  });
-}
+  try {
+    const response = await fetch("/api/business/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        businessName,
+        licenseNumber,
+        phoneNumber,
+        otp,
+        businessType: localStorage.getItem("businessType") || "restaurant"
+      }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("API call failed:", error);
+    throw error;
+  }
+};
 
 export const sendOTP = async (phoneNumber: string) => {
   const { data, error } = await supabase.auth.signInWithOtp({
@@ -279,117 +294,35 @@ export const createFacilityPhoto = async (
 
 export const onboardBusiness = async (formData: FormData) => {
   try {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error("No authentication token found");
+    const token = localStorage.getItem('token');
+    const businessId = localStorage.getItem('businessId');
+
+    if (!token || !businessId) {
+      throw new Error("Authentication credentials missing");
     }
 
-    const newFormData = new FormData();
-    
-    // Map frontend field names to backend expected names
-    const fieldMapping: Record<string, string> = {
-      businessName: "business_name",
-      ownerName: "owner_name",
-      tradeLicense: "trade_license",
-      fireSafetyCert: "fire_safety_cert",
-      liquorLicense: "liquor_license",
-      musicLicense: "music_license",
-      gstNumber: "gst_number",
-      licenseNumber: "license_number",
-      businessType: "business_type",
-      phone: "phone",
-      email: "email",
-      address: "address"
-    };
+    formData.append('businessId', businessId);
 
-    // Add basic business information with correct field names
-    for (const [key, value] of formData.entries()) {
-      const mappedKey = fieldMapping[key] || key;
-      if (!key.includes("team_member") && !key.includes("facility_photo")) {
-        newFormData.append(mappedKey, value.toString());
-      }
-    }
-
-    // Validate required fields
-    const requiredFields = [
-      "business_name", "address", "phone", "email", 
-      "license_number", "business_type", "owner_name",
-      "trade_license", "gst_number", "fire_safety_cert"
-    ];
-
-    for (const field of requiredFields) {
-      const value = newFormData.get(field);
-      if (!value || value.toString().trim() === '') {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-
-    // Handle files
-    const businessLogo = formData.get("business_logo");
-    const ownerPhoto = formData.get("owner_photo");
-    
-    if (!(businessLogo instanceof File)) {
-      throw new Error("Business logo is required");
-    }
-    if (!(ownerPhoto instanceof File)) {
-      throw new Error("Owner photo is required");
-    }
-
-    newFormData.append("business_logo", businessLogo, businessLogo.name);
-    newFormData.append("owner_photo", ownerPhoto, ownerPhoto.name);
-
-    // Handle team members
-    const teamMemberNames = formData.get("team_member_names");
-    const teamMemberRoles = formData.get("team_member_roles");
-    const teamMemberPhotos = formData.getAll("team_member_photos");
-
-    if (teamMemberNames && teamMemberRoles && teamMemberPhotos.length > 0) {
-      newFormData.append("team_member_names", teamMemberNames.toString());
-      newFormData.append("team_member_roles", teamMemberRoles.toString());
-      teamMemberPhotos.forEach((photo) => {
-        if (photo instanceof File) {
-          newFormData.append("team_member_photos", photo, photo.name);
-        }
-      });
-    }
-
-    // Handle facility photos
-    const facilityAreaNames = formData.get("facility_photo_area_names");
-    const facilityPhotos = formData.getAll("facility_photos");
-
-    if (facilityAreaNames && facilityPhotos.length > 0) {
-      newFormData.append("facility_photo_area_names", facilityAreaNames.toString());
-      facilityPhotos.forEach((photo) => {
-        if (photo instanceof File) {
-          newFormData.append("facility_photos", photo, photo.name);
-        }
-      });
-    }
-
-    const response = await fetch("/api/business/onboard", {
-      method: "POST",
+    const response = await fetch('/api/business/onboard', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
-      body: newFormData,
+      body: formData
     });
 
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data.error || "Failed to onboard business");
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to complete business setup');
     }
 
-    if (!data.businessId) {
-      throw new Error("No business ID returned from server");
-    }
-
+    const data = await response.json();
     return {
       success: true,
       businessId: data.businessId,
+      businessType: localStorage.getItem('businessType'),
       message: data.message
     };
-
   } catch (error) {
     console.error("Onboarding error:", error);
     throw error;

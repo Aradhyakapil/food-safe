@@ -30,7 +30,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true, 
       business: data[0],
-      token: "dummy_token" // Replace with actual token generation
+      businessId: data[0].id,
+      token: "dummy_token"
     })
   } catch (error) {
     console.error("Business registration error:", error)
