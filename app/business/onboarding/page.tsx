@@ -37,11 +37,6 @@ export default function BusinessOnboardingPage() {
     ownerName: "",
     ownerPhoto: null as File | null,
     description: "",
-    tradeLicense: "",
-    gstNumber: "",
-    fireSafetyCert: "",
-    liquorLicense: "",
-    musicLicense: "",
   });
 
   // Handle input changes
@@ -124,36 +119,7 @@ export default function BusinessOnboardingPage() {
     try {
       const formDataToSend = new FormData();
 
-      // Validate required fields first
-      const requiredFields = {
-        businessName: "Business Name",
-        address: "Address",
-        phone: "Phone",
-        email: "Email",
-        licenseNumber: "FSSAI License",
-        businessType: "Business Type",
-        ownerName: "Owner Name",
-        tradeLicense: "Trade License",
-        gstNumber: "GST Number",
-        fireSafetyCert: "Fire Safety Certificate"
-      };
-
-      // Check for missing required fields
-      for (const [key, label] of Object.entries(requiredFields)) {
-        if (!formData[key as keyof typeof formData]) {
-          throw new Error(`${label} is required`);
-        }
-      }
-
-      // Check for required files
-      if (!businessLogo) {
-        throw new Error("Business Logo is required");
-      }
-      if (!formData.ownerPhoto) {
-        throw new Error("Owner Photo is required");
-      }
-
-      // Append all basic fields
+      // Append basic information
       formDataToSend.append("business_name", formData.businessName);
       formDataToSend.append("address", formData.address);
       formDataToSend.append("phone", formData.phone);
@@ -161,15 +127,14 @@ export default function BusinessOnboardingPage() {
       formDataToSend.append("license_number", formData.licenseNumber);
       formDataToSend.append("business_type", formData.businessType);
       formDataToSend.append("owner_name", formData.ownerName);
-      formDataToSend.append("trade_license", formData.tradeLicense);
-      formDataToSend.append("gst_number", formData.gstNumber);
-      formDataToSend.append("fire_safety_cert", formData.fireSafetyCert);
-      formDataToSend.append("liquor_license", formData.liquorLicense || "");
-      formDataToSend.append("music_license", formData.musicLicense || "");
 
       // Append files
-      formDataToSend.append("business_logo", businessLogo);
-      formDataToSend.append("owner_photo", formData.ownerPhoto);
+      if (businessLogo) {
+        formDataToSend.append("business_logo", businessLogo);
+      }
+      if (formData.ownerPhoto) {
+        formDataToSend.append("owner_photo", formData.ownerPhoto);
+      }
 
       // Validate and append team members
       if (teamMembers.length === 0) {
@@ -200,16 +165,12 @@ export default function BusinessOnboardingPage() {
         }
       });
 
-      console.log("Submitting form data:", Object.fromEntries(formDataToSend));
       const response = await onboardBusiness(formDataToSend);
-      console.log("Onboarding response:", response);
 
       if (response.success) {
-        // Redirect based on business type
         const dashboardPath = response.businessType === 'restaurant' 
           ? '/business/dashboard'
           : '/business/manufacturing/dashboard';
-          
         router.push(dashboardPath);
       } else {
         throw new Error(response.error || "Failed to complete business setup");
@@ -298,74 +259,22 @@ export default function BusinessOnboardingPage() {
             </div>
 
             {/* Licenses & Certifications */}
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Licenses & Certifications</h3>
-              <Separator className="mb-4" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="licenseNumber">FSSAI License Number</Label>
-                  <Input
-                    id="licenseNumber"
-                    name="licenseNumber"
-                    value={formData.licenseNumber}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="tradeLicense">Trade License Number</Label>
-                  <Input
-                    id="tradeLicense"
-                    name="tradeLicense"
-                    value={formData.tradeLicense}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="gstNumber">GST Number</Label>
-                  <Input
-                    id="gstNumber"
-                    name="gstNumber"
-                    value={formData.gstNumber}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="fireSafetyCert">Fire Safety Certificate</Label>
-                  <Input
-                    id="fireSafetyCert"
-                    name="fireSafetyCert"
-                    value={formData.fireSafetyCert}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="liquorLicense">Liquor License (if applicable)</Label>
-                  <Input
-                    id="liquorLicense"
-                    name="liquorLicense"
-                    value={formData.liquorLicense}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="musicLicense">Music License (if applicable)</Label>
-                  <Input
-                    id="musicLicense"
-                    name="musicLicense"
-                    value={formData.musicLicense}
-                    onChange={handleInputChange}
-                  />
-                </div>
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Licenses & Certifications</h2>
+              
+              <div className="w-full">
+                <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700">
+                  FSSAI License Number
+                </label>
+                <input
+                  type="text"
+                  id="licenseNumber"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+                  required
+                />
               </div>
             </div>
 

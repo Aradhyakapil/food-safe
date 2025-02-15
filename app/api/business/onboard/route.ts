@@ -38,15 +38,10 @@ export async function POST(request: Request) {
       .update({
         logo_url: businessLogoUrl,
         owner_photo_url: ownerPhotoUrl,
-        // Add other fields from formData
         address: formData.get("address"),
         email: formData.get("email"),
         owner_name: formData.get("owner_name"),
-        trade_license: formData.get("trade_license"),
-        gst_number: formData.get("gst_number"),
-        fire_safety_cert: formData.get("fire_safety_cert"),
-        liquor_license: formData.get("liquor_license"),
-        music_license: formData.get("music_license"),
+        license_number: formData.get("license_number"),  // FSSAI license number
       })
       .eq("id", businessId)
 
