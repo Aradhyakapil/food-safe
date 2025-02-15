@@ -58,18 +58,21 @@ export const loginBusiness = async (phoneNumber: string, licenseNumber: string, 
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phoneNumber, licenseNumber, businessType }),
+      body: JSON.stringify({ 
+        phoneNumber, 
+        licenseNumber, 
+        businessType 
+      }),
     });
     
     const data = await response.json();
     
     if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
+      throw new Error(data.error || 'Login failed');
     }
     
     if (data.businessId) {
       localStorage.setItem('businessId', data.businessId.toString());
-      localStorage.setItem('businessName', data.name);
       localStorage.setItem('businessType', businessType);
       localStorage.setItem('token', data.token);
     }

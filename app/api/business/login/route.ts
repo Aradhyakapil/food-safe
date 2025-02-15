@@ -3,69 +3,50 @@ import { supabase } from "@/app/lib/supabase"
 
 export async function POST(request: Request) {
   try {
-    const { phoneNumber, licenseNumber } = await request.json()
+    const { phoneNumber, licenseNumber, businessType } = await request.json()
 
-    // Log the incoming request data
-    console.log("Login attempt with:", { 
-      phoneNumber, 
-      licenseNumber,
-      licenseNumberTrimmed: licenseNumber.trim()
-    })
+    if (!phoneNumber || !licenseNumber || !businessType) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      )
+    }
 
-    // First check if business exists with the license number
-    const { data: business, error: businessError } = await supabase
+    // Query the business table
+    const { data: business, error } = await supabase
       .from("businesses")
-      .select("id, name, phone, license_number")
-      .eq("license_number", licenseNumber.trim())
+      .select("*")
+      .eq("phone", phoneNumber)
+      .eq("license_number", licenseNumber)
+      .eq("business_type", businessType)
+      .single()
 
-    // Log the query results
-    console.log("Database query result:", { 
-      business, 
-      error: businessError,
-      found: business && business.length > 0 
-    })
-
-    if (businessError || !business || business.length === 0) {
-      // Let's check what licenses exist in the database
-      const { data: allBusinesses } = await supabase
-        .from("businesses")
-        .select("license_number")
-      
-      console.log("Available license numbers:", allBusinesses?.map(b => b.license_number))
-      
-      return NextResponse.json({ 
-        success: false, 
-        message: "Business not found with the provided license number" 
-      }, { status: 400 })
+    if (error || !business) {
+      return NextResponse.json(
+        { success: false, error: "Invalid credentials" },
+        { status: 401 }
+      )
     }
 
-    // Format the provided phone number to match database format (919930916956)
-    const formattedPhoneNumber = phoneNumber
-      .replace(/\s+/g, '')  // Remove spaces
-      .replace(/^\+/, '')   // Remove leading +
-      .replace(/^91/, '91') // Ensure 91 prefix
-
-    // Then verify if the phone number matches
-    if (business[0].phone !== formattedPhoneNumber) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "Phone number does not match our records" 
-      }, { status: 400 })
-    }
+    // Generate a simple token
+    const token = btoa(JSON.stringify({
+      businessId: business.id,
+      businessType: business.business_type,
+      timestamp: Date.now()
+    }))
 
     return NextResponse.json({
       success: true,
-      businessId: business[0].id,
-      name: business[0].name,
-      token: "dummy_token" // Replace with real JWT token in production
+      token,
+      businessId: business.id,
+      businessType: business.business_type
     })
-
   } catch (error) {
     console.error("Login error:", error)
-    return NextResponse.json({ 
-      success: false, 
-      message: error instanceof Error ? error.message : "Login failed" 
-    }, { status: 400 })
+    return NextResponse.json(
+      { success: false, error: "Failed to process login" },
+      { status: 500 }
+    )
   }
 }
 
