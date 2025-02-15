@@ -231,21 +231,13 @@ export const getTeamMembers = async (businessId: number) => {
   }
 };
 
-export const getFacilityPhotos = async (businessId: number) => {
+export const getFacilityPhotos = async (businessId: string) => {
   try {
-    const response = await fetch(`/api/business/${businessId}/facility-photos`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
+    const response = await fetch(`/api/business/facility-photos/${businessId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch facility photos');
     }
-
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Failed to fetch facility photos:', error);
     throw error;

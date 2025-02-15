@@ -16,6 +16,7 @@ import {
   getReviews,
 } from "@/app/api/api"
 import RestaurantFacilityPhotos from '@/app/consumer/business/components/restaurant-facility-photos'
+import Image from "next/image"
 
 interface BusinessDetails {
   id: number
