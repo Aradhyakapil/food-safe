@@ -147,3 +147,35 @@ export const getReviews = async (businessId: number) => {
   }
 };
 
+export const getManufacturingDetails = async (businessId: number) => {
+  return await fetchApi(`/api/business/${businessId}/manufacturing-details`)
+}
+
+export const updateManufacturingDetails = async (businessId: number, details: any) => {
+  return await fetchApi(`/api/business/${businessId}/manufacturing-details`, "PUT", details)
+}
+
+export const getBatchProduction = async (businessId: number) => {
+  return await fetchApi(`/api/business/${businessId}/batch-production`)
+}
+
+export const createBatchProduction = async (details: any) => {
+  return await fetchApi(`/api/business/batch-production`, "POST", details)
+}
+
+export const getRawMaterialSuppliers = async (businessId: number) => {
+  return await fetchApi(`/api/business/${businessId}/raw-material-suppliers`)
+}
+
+export const createRawMaterialSupplier = async (details: any) => {
+  return await fetchApi(`/api/business/raw-material-suppliers`, "POST", details)
+}
+
+export const getPackagingCompliance = async (businessId: number) => {
+  return await fetchApi(`/api/business/${businessId}/packaging-compliance`)
+}
+
+export const createPackagingCompliance = async (details: any) => {
+  return await fetchApi(`/api/business/packaging-compliance`, "POST", details)
+}
+

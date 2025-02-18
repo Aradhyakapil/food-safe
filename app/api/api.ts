@@ -124,24 +124,67 @@ export const sendOTP = async (phoneNumber: string) => {
 
 export const getBusiness = async (businessId: number) => {
   try {
-    const response = await fetch(`/api/business/${businessId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('id', businessId)
+      .single()
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch business details');
-    }
+    if (error) throw error
 
-    const data = await response.json();
-    return data;
+    return { success: true, data }
   } catch (error) {
-    console.error('Failed to fetch business details:', error);
-    throw error;
+    console.error('Failed to fetch business details:', error)
+    throw new Error('Failed to fetch business details')
   }
-};
+}
+
+export const getManufacturingDetails = async (businessId: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('manufacturing_details')
+      .select('*')
+      .eq('business_id', businessId)
+      .single()
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error) {
+    console.error('Failed to fetch manufacturing details:', error)
+    throw new Error('Failed to fetch manufacturing details')
+  }
+}
+
+export const getBatchProduction = async (businessId: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('batch_production_details')
+      .select('*')
+      .eq('business_id', businessId)
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error) {
+    console.error('Failed to fetch batch production:', error)
+    throw new Error('Failed to fetch batch production')
+  }
+}
+
+export const getPackagingCompliance = async (businessId: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('packaging_compliance')
+      .select('*')
+      .eq('business_id', businessId)
+      .single()
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error) {
+    console.error('Failed to fetch packaging compliance:', error)
+    throw new Error('Failed to fetch packaging compliance')
+  }
+}
 
 export const getHygieneRatings = async (businessId: number) => {
   try {

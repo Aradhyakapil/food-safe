@@ -21,7 +21,7 @@ interface BusinessInformation {
   logo_url: string
 }
 
-export function BusinessHeader({ businessId }: { businessId: number }) {
+export const BusinessHeader: React.FC<{ businessId: number }> = ({ businessId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)

@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
+import { supabase } from "@/app/lib/supabase"
+import { uploadFile } from "@/app/lib/storage-utils"
 
 interface TeamMember {
   name: string
@@ -95,12 +97,63 @@ export default function ManufacturerOnboardingPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Here you would typically upload all files and submit the form data
-    // For this example, we'll simulate an API call
-    setTimeout(() => {
+    try {
+      const businessId = parseInt(localStorage.getItem("businessId") || "")
+      if (!businessId) {
+        throw new Error("Business ID not found")
+      }
+
+      // Prepare manufacturing details
+      const manufacturingDetails = {
+        business_id: businessId,
+        production_capacity: formData.productionCapacity || null,
+        manufacturing_license: formData.manufacturingLicense || null,
+        iso_certification: formData.iso22000Certification || null,
+        haccp_certification: formData.haccpCertification || null,
+        description: formData.description || null,
+      }
+
+      // Insert manufacturing details
+      const { error: mfgError } = await supabase
+        .from("manufacturing_details")
+        .insert([manufacturingDetails])
+
+      if (mfgError) throw mfgError
+
+      // Handle batch production details
+      const batchProductionDetails = {
+        business_id: businessId,
+        batch_number: null,
+        manufacturing_date: null,
+        expiry_date: null,
+        production_facility: null,
+        supervisor: null,
+        testing_parameters: null,
+        storage_conditions: null,
+      }
+
+      const { error: batchError } = await supabase
+        .from("batch_production_details")
+        .insert([batchProductionDetails])
+
+      if (batchError) throw batchError
+
+      // Handle packaging compliance if provided
+      if (packagingCompliance) {
+        const { error: packagingError } = await supabase
+          .from("packaging_compliance")
+          .insert([packagingCompliance])
+
+        if (packagingError) throw packagingError
+      }
+
+      router.push(`/business/manufacturing/dashboard`)
+    } catch (error) {
+      console.error('Error saving manufacturing details:', error)
+      alert('Failed to save manufacturing details: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    } finally {
       setIsSubmitting(false)
-      router.push("/business/manufacturing/dashboard")
-    }, 2000)
+    }
   }
 
   return (

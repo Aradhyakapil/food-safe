@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { supabase } from "@/app/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,38 +10,35 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { getManufacturingDetails, updateManufacturingDetails } from "@/app/api/api"
 
-interface ManufacturingDetails {
-  id?: number
-  business_id: number
-  production_capacity: string
-  manufacturing_license: string
-  iso_certification: string
-  haccp_certification: string
-  description: string
+interface ManufacturingDetailsProps {
+  businessId: number
 }
 
-export function ManufacturingDetails({ businessId }: { businessId: number }) {
-  const [details, setDetails] = useState<ManufacturingDetails>({
-    business_id: businessId,
-    production_capacity: "",
-    manufacturing_license: "",
-    iso_certification: "",
-    haccp_certification: "",
-    description: "",
-  })
+export function ManufacturingDetails({ businessId }: ManufacturingDetailsProps) {
+  const [details, setDetails] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const fetchManufacturingDetails = async () => {
+    async function fetchDetails() {
       try {
-        const response = await getManufacturingDetails(businessId)
-        setDetails(response.data)
+        const { data, error } = await supabase
+          .from("manufacturing_details")
+          .select("*")
+          .eq("business_id", businessId)
+          .single()
+
+        if (error) throw error
+        setDetails(data)
       } catch (error) {
-        console.error("Failed to fetch manufacturing details:", error)
+        console.error("Error fetching manufacturing details:", error)
+      } finally {
+        setLoading(false)
       }
     }
-    fetchManufacturingDetails()
+
+    fetchDetails()
   }, [businessId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -62,6 +60,9 @@ export function ManufacturingDetails({ businessId }: { businessId: number }) {
       setIsLoading(false)
     }
   }
+
+  if (loading) return <div>Loading...</div>
+  if (!details) return <div>No manufacturing details found</div>
 
   return (
     <Card>
@@ -134,26 +135,26 @@ export function ManufacturingDetails({ businessId }: { businessId: number }) {
         </Dialog>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="font-medium">Production Capacity:</span>
-            <span>{details.production_capacity}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">Manufacturing License:</span>
-            <span>{details.manufacturing_license}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">ISO Certification:</span>
-            <span>{details.iso_certification || "N/A"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">HACCP Certification:</span>
-            <span>{details.haccp_certification || "N/A"}</span>
+        <div className="space-y-4">
+          <div>
+            <label className="font-medium">Production Capacity:</label>
+            <p>{details.production_capacity || "Not specified"}</p>
           </div>
           <div>
-            <span className="font-medium">Description:</span>
-            <p className="mt-1 text-sm">{details.description}</p>
+            <label className="font-medium">Manufacturing License:</label>
+            <p>{details.manufacturing_license || "Not specified"}</p>
+          </div>
+          <div>
+            <label className="font-medium">ISO Certification:</label>
+            <p>{details.iso_certification || "Not specified"}</p>
+          </div>
+          <div>
+            <label className="font-medium">HACCP Certification:</label>
+            <p>{details.haccp_certification || "Not specified"}</p>
+          </div>
+          <div>
+            <label className="font-medium">Description:</label>
+            <p>{details.description || "Not specified"}</p>
           </div>
         </div>
       </CardContent>
